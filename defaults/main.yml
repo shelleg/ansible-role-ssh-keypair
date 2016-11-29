@@ -1,0 +1,5 @@
+---
+# defaults file for ansible-role-sshkeypair
+ssh_key_files_dir: "{{ playbook_dir }}/ssh"
+ssh_key_file_name: "id_rsa_ansible"
+recreate_keys: False

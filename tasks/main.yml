@@ -1,0 +1,26 @@
+---
+# tasks file for ansible-role-sshkeypair
+#- debug: var=hostvars[inventory_hostname].facter_gid
+- stat: path="{{ ssh_key_files_dir }}"
+  register: st
+
+- name: Create Output Directory for SSH Keys
+  file:
+    state: directory
+    path: "{{ ssh_key_files_dir }}"
+    owner: "{{ ansible_user_id }}"
+    group: "{{ ansible_user_gid }}"
+    mode: 0755
+  when: st.stat.exists == False
+
+- stat: path="{{ ssh_key_files_dir }}/{{ ssh_key_file_name }}"
+  register: st
+
+- name: Create KeyPair
+  user:
+    name: "{{ ansible_user_id }}"
+    generate_ssh_key: yes
+    ssh_key_bits: 4096
+    ssh_key_file: "{{ ssh_key_files_dir }}/{{ ssh_key_file_name }}"
+    state: present
+  when: st.stat.exists == False or recreate_keys == True
