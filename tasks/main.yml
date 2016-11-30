@@ -1,4 +1,6 @@
 ---
+
+- debug: var=recreate_keys
 # tasks file for ansible-role-sshkeypair
 #- debug: var=hostvars[inventory_hostname].facter_gid
 - stat: path="{{ ssh_key_files_dir }}"
@@ -11,26 +13,23 @@
     owner: "{{ ansible_user }}"
     group: "{{ ansible_user_gid }}"
     mode: 0755
-  when: st.stat.exists == False
+  when: not st.stat.exists
 
 - stat: path="{{ ssh_key_files_dir }}/{{ ssh_key_file_name }}"
   register: st
 
 - name: Create KeyPair
+  register: created
   user:
     name: "{{ ansible_user_id }}"
     generate_ssh_key: yes
     ssh_key_bits: 4096
     ssh_key_file: "{{ ssh_key_files_dir }}/{{ ssh_key_file_name }}"
     state: present
-  when: st.stat.exists == False or recreate_keys == True
+  when: not st.stat.exists or recreate_keys
 
-- name: Chceck if file is vault encrypted
-  shell: ansible-vault view "{{ ssh_key_files_dir }}/{{ ssh_key_file_name }}"
-  ignore_errors: yes
-  register: result
-
-# only ecrypt if the file is not encrypted ie. vault view failed
+# only encrypt if the file is not encrypted and was newly created ie. vault view failed
+# do not encrypt a file that already exists and was unencrypted by the user for use.
 - name: vault the created private key
   shell: ansible-vault encrypt "{{ ssh_key_files_dir }}/{{ ssh_key_file_name }}"
-  when: result|failed
+  when: not created|skipped
