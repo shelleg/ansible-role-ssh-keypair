@@ -1,0 +1,6 @@
+---
+
+- name: Add managed public key to host {{ inventory_hostname }}
+  authorized_key:
+    user: "{{ ansible_user }}"
+    key: "{{ lookup('file', [ssh_key_files_dir, '/', ssh_key_file_name, '.pub']|join) }}"
