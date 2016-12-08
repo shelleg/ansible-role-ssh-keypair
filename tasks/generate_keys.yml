@@ -18,6 +18,18 @@
 - stat: path="{{ ssh_key_files_dir }}/{{ ssh_key_file_name }}"
   register: st
 
+- name: Remove existing private key file  if recreate is designated and file already present
+  file:
+    path: "{{ ssh_key_files_dir }}/{{ ssh_key_file_name }}" 
+    state: absent
+  when: st.stat.exists and recreate_keys
+
+- name: Remove existing public key file  if recreate is designated and file already present
+  file:
+    path: "{{ ssh_key_files_dir }}/{{ ssh_key_file_name }}.pub"
+    state: absent                                                                                                                                                                 
+  when: st.stat.exists and recreate_keys
+
 - name: Create KeyPair
   register: created
   user:
