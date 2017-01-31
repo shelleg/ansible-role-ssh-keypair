@@ -33,8 +33,26 @@
     state: present
   when: not st.stat.exists or recreate_keys
 
+- name: create a temporary vault password file
+  register: vault_file
+  copy:
+    dest: "/tmp/.{{ 1000000|random }}.vault"
+    content: "{{ vault_password }}"
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user_gid }}"
+    mode: 0644
+
+- debug: var=vault_password
+
 # only encrypt if the file is not encrypted and was newly created ie. vault view failed
 # do not encrypt a file that already exists and was unencrypted by the user for use.
 - name: vault the created private key
   shell: ansible-vault encrypt "{{ ssh_key_files_dir }}/{{ ssh_key_file_name }}"
+  environment:
+    ANSIBLE_VAULT_PASSWORD_FILE: "{{ vault_file.dest }}"
   when: not created|skipped
+
+- name: remove temp created vault file
+  file:
+    dest: "{{ vault_file.dest }}"
+    state: absent
