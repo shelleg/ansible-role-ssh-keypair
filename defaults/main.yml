@@ -5,3 +5,4 @@ ssh_key_file_name: "id_rsa_ansible"
 recreate_keys: no
 generate_keys: yes
 publish_public_key: no
+vault_password: 12345678
